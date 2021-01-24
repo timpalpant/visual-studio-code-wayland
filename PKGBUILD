@@ -13,7 +13,7 @@ _electron=electron-beta
 _pkgname=vscode
 pkgver=1.52.1
 pkgrel=2
-arch=('x86_64')
+arch=('x86_64' 'aarch64')
 url='https://github.com/microsoft/vscode'
 license=('MIT')
 depends=('electron-beta-bin' 'libsecret' 'libx11' 'libxkbfile' 'ripgrep')
@@ -26,10 +26,12 @@ conflicts=('code')
 source=("https://codeload.github.com/microsoft/${_pkgname}/tar.gz/$pkgver"
         'code.js'
         'code.sh'
+        'compilation.diff'
         'product_json.diff')
 sha512sums=('6be310bd3dbd1a4a0a054fc07e090325b80e25b280143ac5a15bb0d563207c79939c0fe8244f9ef826882281e73ba5bbdb3a204607ab986707d9169b1c168692'
             '814c9554427183cd893a33cd2cbe91f6e0ea71921ef0717c86217b1d3058d265f9ff7a9ace3e7b76f122e60b7686475cf4d999e581a1845face3033afb9f745f'
             '2a29dd06ec4b3e340a1f20aaf3379ed7b97ac39092811ee5ed4a67ba5d4eea26eb718ccb6ec7d49059341359d96272757493c43e3ecf39d3ad9053701b44bfe9'
+            '88e8b662457a219eb54bd568ead1b8fd7ce35b4b738129fa86a6ea796d315e561588ae8229d6e720db88248c19c77876af806b072caf217760aaaf8ace82907c'
             'b1aa0d7c5b3e3e8ba1172822d75ea38e90efc431b270e0b4ca9e45bf9c0be0f60922c8618969ef071b5b6dbd9ac9f030294f1bf49bcc28c187b46d113dca63a7')
 
 # Even though we don't officially support other archs, let's
@@ -46,6 +48,9 @@ case "$CARCH" in
   armv7h)
     _vscode_arch=arm
     ;;
+  aarch64)
+    _vscode_arch=arm64
+    ;;
   *)
     # Needed for mksrcinfo
     _vscode_arch=DUMMY
@@ -61,6 +66,7 @@ prepare() {
   # This patch no longer contains proprietary modifications.
   # See https://github.com/Microsoft/vscode/issues/31168 for details.
   patch -p0 < ../product_json.diff
+  patch -p0 < ../compilation.diff
 
   # Set the commit and build date
   local _commit=$(git rev-parse HEAD)
@@ -112,14 +118,14 @@ build() {
 
   cd $_pkgname-$pkgver
 
-  yarn install --arch=x64
+  yarn install --arch=$_vscode_arch
 
   # The default memory limit may be too low for current versions of node
   # to successfully build vscode. Change it if this number still doesn't
   # work for your system.
   mem_limit="--max_old_space_size=6144"
 
-  if ! /usr/bin/node $mem_limit /usr/bin/gulp vscode-linux-x64-min
+  if ! /usr/bin/node $mem_limit /usr/bin/gulp vscode-linux-$_vscode_arch-min
   then
       echo
       echo "*** NOTE: If the build failed due to running out of file handles (EMFILE),"

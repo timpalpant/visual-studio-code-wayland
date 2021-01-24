@@ -1,0 +1,24 @@
+--- build/lib/compilation.ts	2021-01-24 14:33:05.715041887 -0500
++++ build/lib/compilation.ts.new	2021-01-24 14:30:33.138050316 -0500
+@@ -18,7 +18,7 @@
+ import * as util from './util';
+ import * as fancyLog from 'fancy-log';
+ import * as ansiColors from 'ansi-colors';
+-import * as os from 'os';
++//import * as os from 'os';
+ import ts = require('typescript');
+ 
+ const watch = require('./watch');
+@@ -83,9 +83,9 @@
+ 
+ 	return function () {
+ 
+-		if (os.totalmem() < 4_000_000_000) {
+-			throw new Error('compilation requires 4GB of RAM');
+-		}
++	//	if (os.totalmem() < 4_000_000_000) {
++	//		throw new Error('compilation requires 4GB of RAM');
++	//	}
+ 
+ 		const compile = createCompile(src, build, true);
+ 		const srcPipe = gulp.src(`${src}/**`, { base: `${src}` });
